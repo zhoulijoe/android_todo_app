@@ -1,27 +1,22 @@
 package com.zhou.todoapp.activity;
 
-import android.app.Activity;
 import android.app.ListActivity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.SimpleCursorAdapter;
 
 import com.zhou.todoapp.R;
-import com.zhou.todoapp.config.GlobalConfig;
+import com.zhou.todoapp.manager.TaskManager;
 import com.zhou.todoapp.model.Task;
 import com.zhou.todoapp.model.TaskList;
-import com.zhou.todoapp.service.TaskService;
-import com.zhou.todoapp.store.TokenStore;
 
 import java.util.List;
 
 import retrofit.Callback;
-import retrofit.RequestInterceptor;
-import retrofit.RestAdapter;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 
@@ -36,9 +31,15 @@ public class TasksActivity extends ListActivity {
       super.onCreate(savedInstanceState);
       setContentView(R.layout.activity_tasks);
 
-      this.queryTasks();
+      queryTasks();
    }
 
+   @Override
+   protected void onResume() {
+      super.onResume();
+
+      queryTasks();
+   }
 
    @Override
    public boolean onCreateOptionsMenu(Menu menu) {
@@ -56,7 +57,9 @@ public class TasksActivity extends ListActivity {
 
       //noinspection SimplifiableIfStatement
       if (id == R.id.action_add_task) {
-         Log.d(TAG, "Add a new task");
+         Intent editTaskIntent = new Intent(TasksActivity.this, EditTaskActivity.class);
+         TasksActivity.this.startActivity(editTaskIntent);
+
          return true;
       }
 
@@ -78,20 +81,7 @@ public class TasksActivity extends ListActivity {
    }
 
    private void queryTasks() {
-      RestAdapter restAdapter = (new RestAdapter.Builder())
-         .setLogLevel(RestAdapter.LogLevel.FULL)
-         .setEndpoint(GlobalConfig.API_SERVER)
-         .setRequestInterceptor(new RequestInterceptor() {
-            @Override
-            public void intercept(RequestFacade request) {
-               request.addHeader("Authorization", "Bearer " + TokenStore.INSTANCE.getAuthResult().getAccessToken());
-               request.addHeader("Accept", "*/*");
-            }
-         })
-         .build();
-      TaskService taskService = restAdapter.create(TaskService.class);
-
-      taskService.getTasks(new Callback<TaskList>() {
+      TaskManager.INSTANCE.getTasks(new Callback<TaskList>() {
 
          @Override
          public void success(TaskList tasks, Response response) {

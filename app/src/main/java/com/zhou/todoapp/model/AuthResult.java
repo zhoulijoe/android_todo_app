@@ -7,6 +7,13 @@ public class AuthResult {
    @SerializedName("access_token")
    private String accessToken;
 
+   public AuthResult() {
+   }
+
+   public AuthResult(String accessToken) {
+      this.accessToken = accessToken;
+   }
+
    public String getAccessToken() {
       return accessToken;
    }

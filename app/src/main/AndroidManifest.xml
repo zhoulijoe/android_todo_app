@@ -20,6 +20,7 @@
             android:windowSoftInputMode="adjustResize|stateVisible" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -30,6 +31,14 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.zhou.todoapp.activity.LoginActivity" />
+        </activity>
+        <activity
+            android:name=".activity.EditTaskActivity"
+            android:label="@string/title_activity_edit_task"
+            android:parentActivityName=".activity.TasksActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.zhou.todoapp.activity.TasksActivity" />
         </activity>
     </application>
 

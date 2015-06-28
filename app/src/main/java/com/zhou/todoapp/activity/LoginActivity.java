@@ -10,12 +10,10 @@ import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.net.Uri;
-
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
-import android.util.Base64;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -28,17 +26,14 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.zhou.todoapp.R;
-import com.zhou.todoapp.config.GlobalConfig;
+import com.zhou.todoapp.manager.AuthManager;
 import com.zhou.todoapp.model.AuthResult;
-import com.zhou.todoapp.service.AuthService;
 import com.zhou.todoapp.store.TokenStore;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import retrofit.Callback;
-import retrofit.RequestInterceptor;
-import retrofit.RestAdapter;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 
@@ -143,26 +138,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
    }
 
    private void auth(String username, String password) {
-      RestAdapter restAdapter = new RestAdapter.Builder()
-         .setEndpoint(GlobalConfig.API_SERVER)
-         .setRequestInterceptor(new RequestInterceptor() {
-            @Override
-            public void intercept(RequestFacade request) {
-               request.addHeader("Authorization", basic("todo-client", "secret"));
-               request.addHeader("Accept", "*/*");
-            }
-
-            public String basic(String userName, String password) {
-               String usernameAndPassword = userName + ":" + password;
-               String encoded = Base64.encodeToString(usernameAndPassword.getBytes(), Base64.DEFAULT);
-               return "Basic " + encoded;
-            }
-         })
-         .build();
-
-      AuthService authService = restAdapter.create(AuthService.class);
-
-      authService.auth(username, password, new Callback<AuthResult>() {
+      AuthManager.INSTANCE.auth(username, password, new Callback<AuthResult>() {
          @Override
          public void success(AuthResult authResult, Response response) {
             showProgress(false);
