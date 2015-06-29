@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 
 import com.zhou.todoapp.R;
@@ -22,7 +23,9 @@ import retrofit.client.Response;
 
 public class TasksActivity extends ListActivity {
 
-   private static final String TAG = "TasksActivity";
+   public final static String BUNDLE_TASK_KEY = "com.zhou.todoapp.activity.TasksActivity.taskKey";
+
+   private final static String TAG = "TasksActivity";
 
    private List<Task> tasks;
 
@@ -32,6 +35,8 @@ public class TasksActivity extends ListActivity {
       setContentView(R.layout.activity_tasks);
 
       queryTasks();
+
+      setupClickListener();
    }
 
    @Override
@@ -67,16 +72,81 @@ public class TasksActivity extends ListActivity {
    }
 
    public void onDoneButtonClick(View view) {
+      Log.d(TAG, "done button tag: " + view.getTag());
+      final View finalView = view;
 
+      finalView.setEnabled(false);
+
+      Task task = tasks.get((int)finalView.getTag());
+      task.setComplete(!task.getComplete());
+
+      TaskManager.INSTANCE.updateTask(task, new Callback<Task>() {
+         @Override
+         public void success(Task task, Response response) {
+            finalView.setEnabled(true);
+
+            TaskAdapter arrayAdapter = (TaskAdapter)TasksActivity.this.getListAdapter();
+            arrayAdapter.notifyDataSetChanged();
+         }
+
+         @Override
+         public void failure(RetrofitError error) {
+            finalView.setEnabled(true);
+         }
+      });
+   }
+
+   private void setupClickListener() {
+      getListView().setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+         @Override
+         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            final Task task = tasks.get(position);
+
+            Intent editTaskIntent = new Intent(TasksActivity.this, EditTaskActivity.class);
+            Bundle bundle = new Bundle();
+            bundle.putSerializable(BUNDLE_TASK_KEY, task);
+            editTaskIntent.putExtras(bundle);
+
+            TasksActivity.this.startActivity(editTaskIntent);
+         }
+      });
+
+      getListView().setOnItemLongClickListener(
+         new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+               Log.d(TAG, "Long click detected");
+
+               final Task task = tasks.get(position);
+
+               TaskManager.INSTANCE.deleteTask(task, new Callback() {
+                  @Override
+                  public void success(Object o, Response response) {
+                     TasksActivity.this.tasks.remove(task);
+
+                     ArrayAdapter<Task> arrayAdapter = (ArrayAdapter<Task>)TasksActivity.this.getListAdapter();
+                     arrayAdapter.notifyDataSetChanged();
+                  }
+
+                  @Override
+                  public void failure(RetrofitError error) {
+
+                  }
+               });
+
+               return true;
+            }
+         }
+      );
    }
 
    private void updateUI() {
-      ArrayAdapter<Task> listAdapter = new ArrayAdapter<>(
+      TaskAdapter listAdapter = new TaskAdapter(
          this,
-         R.layout.task_view,
-         R.id.taskTextView,
          this.tasks
       );
+
       this.setListAdapter(listAdapter);
    }
 

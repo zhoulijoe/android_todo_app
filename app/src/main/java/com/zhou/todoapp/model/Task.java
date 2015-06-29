@@ -1,6 +1,8 @@
 package com.zhou.todoapp.model;
 
-public class Task {
+import java.io.Serializable;
+
+public class Task implements Serializable {
 
    private String id;
 
@@ -11,15 +13,17 @@ public class Task {
    private Boolean complete;
 
    public Task() {
+      this(null, null);
    }
 
    public Task(String description) {
-      this.description = description;
+      this(null, description);
    }
 
    public Task(String id, String description) {
       this.id = id;
       this.description = description;
+      this.complete = false;
    }
 
    public String getId() {
